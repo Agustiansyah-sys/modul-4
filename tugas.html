@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Toko Elektronik Cepat</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .produk-list button { display: block; margin: 5px 0; width: 100%; }
+    .produk-display img {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+; 
+    #jam { font-weight: bold; font-size: 1.2em; }
+    .form-group { margin-bottom: 10px; }
+    .output { margin-top: 20px; background: #f4f4f4; padding: 10px; }
+  </style>
+</head>
+<body onload="initPage()">
+  <h1>Toko Elektronik Cepat</h1>
+  <p>Waktu transaksi: <span id="jam"></span></p>
+
+  <div class="container">
+    <!-- Kolom kiri -->
+    <div>
+      <div class="produk-display">
+        <img id="gambar-produk" src="">
+        <div>
+          <button onclick="gantiGambar(-1)">Previous</button>
+          <button onclick="gantiGambar(1)">Next</button>
+        </div>
+        <h2 id="nama-produk"></h2>
+        <p id="harga-produk"></p>
+      </div>
+
+      <h3>Form Pemesanan</h3>
+      <div>
+        <div class="form-group">
+          <label>Nama Pemesan:</label>
+          <input type="text" id="namaPemesan">
+        </div>
+        <div class="form-group">
+          <label>Jumlah Pesan:</label>
+          <input type="number" id="jumlahPesan">
+        </div>
+        <div class="form-group">
+          <label>Kode Promo:</label>
+          <input type="text" id="kodePromo">
+        </div>
+        <button onclick="prosesPemesanan()">Pesan Sekarang</button>
+        <div class="output" id="output-pesanan"></div>
+      </div>
+    </div>
+
+    <!-- Kolom kanan -->
+    <div class="produk-list" id="daftar-produk"></div>
+  </div>
+
+  <script>
+    let produk = [
+      {
+        nama: "Microwave",
+        harga: 500000,
+        gambar: [
+          "microve 1.jpg",
+          "microve 2.jpg",
+        ]
+      },
+      {
+        nama: "Oven Toaster",
+        harga: 450000,
+        gambar: [
+          "pemanggang roti 1.jpg",
+          "pemanggang roti 2.jpg",
+        ]
+      },
+      {
+        nama: "Mixer",
+        harga: 750000,
+        gambar: [
+          "mixer 1.jpg",
+          "mixer 2.jpg",
+        ]
+      }
+    ];
+
+    let indexProdukAktif = 0;
+    let indexGambarAktif = 0;
+
+    function initPage() {
+      tampilkanJam();
+      setInterval(tampilkanJam, 1000);
+      tampilkanProduk();
+      tampilkanDaftarProduk();
+    }
+
+    function tampilkanJam() {
+      const sekarang = new Date();
+      const jam = sekarang.getHours().toString().padStart(2, '0');
+      const menit = sekarang.getMinutes().toString().padStart(2, '0');
+      const detik = sekarang.getSeconds().toString().padStart(2, '0');
+      document.getElementById("jam").innerText = `${jam}:${menit}:${detik}`;
+    }
+
+    function tampilkanProduk() {
+      const produkAktif = produk[indexProdukAktif];
+      document.getElementById("gambar-produk").src = produkAktif.gambar[indexGambarAktif];
+      document.getElementById("nama-produk").innerText = produkAktif.nama;
+      document.getElementById("harga-produk").innerText = "Rp " + produkAktif.harga.toLocaleString();
+    }
+
+    function gantiGambar(arah) {
+      const gambarArray = produk[indexProdukAktif].gambar;
+      indexGambarAktif += arah;
+      if (indexGambarAktif >= gambarArray.length) indexGambarAktif = 0;
+      if (indexGambarAktif < 0) indexGambarAktif = gambarArray.length - 1;
+      tampilkanProduk();
+    }
+
+    function tampilkanDaftarProduk() {
+      const daftar = document.getElementById("daftar-produk");
+      produk.forEach((item, index) => {
+        const btn = document.createElement("button");
+        btn.innerText = item.nama;
+        btn.onclick = function() {
+          indexProdukAktif = index;
+          indexGambarAktif = 0;
+          tampilkanProduk();
+        };
+        daftar.appendChild(btn);
+      });
+    }
+
+    function prosesPemesanan() {
+      const nama = document.getElementById("namaPemesan").value.trim();
+      const jumlah = parseInt(document.getElementById("jumlahPesan").value);
+      const kode = document.getElementById("kodePromo").value.trim().toUpperCase();
+
+      if (nama === "" || isNaN(jumlah) || jumlah <= 0) {
+        alert("Nama dan jumlah pesan wajib diisi dengan benar.");
+        return;
+      }
+
+      const produkAktif = produk[indexProdukAktif];
+      const subtotal = produkAktif.harga * jumlah;
+      let potongan = 0;
+      if (kode === "DISKON10") potongan = subtotal * 0.10;
+      const total = subtotal - potongan;
+      const orderId = "INV-" + Math.floor(Math.random() * 90000 + 10000);
+
+      document.getElementById("output-pesanan").innerHTML = `
+        <p><b>Order ID:</b> ${orderId}</p>
+        <p><b>Nama:</b> ${nama}</p>
+        <p><b>Produk:</b> ${produkAktif.nama}</p>
+        <p><b>Jumlah:</b> ${jumlah}</p>
+        <p><b>Subtotal:</b> Rp ${subtotal.toLocaleString()}</p>
+        <p><b>Potongan:</b> Rp ${potongan.toLocaleString()}</p>
+        <p><b>Total Bayar:</b> <b>Rp ${total.toLocaleString()}</b></p>
+      `;
+    }
+  </script>
+</body>
+</html>
